@@ -188,15 +188,15 @@ var feedz = {
   },
   'remove': function(id){
     //remove from list
-    for (feed in server.feedz.feedList) {
-      if (server.feedz.feedList[feed] == id) server.feedz.feedList.splice( feed, 1 );
+    for( feed in server.feedz.feedList ) {
+      if(server.feedz.feedList[feed] === id) {server.feedz.feedList.splice( feed, 1 );}
     }
     server.twit.stream();
     return server.feedz.list();
   },
   'add': function(feed){
     // add to list
-    if( feed && feed != ''){
+    if( feed && feed !== ''){
       // don't allow duplicates.
       server.feedz.remove(feed);
       server.feedz.feedList.push(feed);
@@ -238,10 +238,6 @@ server.commands = {
     'handler': server.feedz.add,
     'alias'  : ['add','a','A','+','search','find','grep']
   },
-  'add' : {
-    'handler': server.feedz.add,
-    'alias'  : ['add','a','A','+','search','find','grep']
-  },
   'remove' : {
     'handler': server.feedz.remove,
     'alias'  : ['remove','R','r','rm','del','-']
@@ -257,19 +253,20 @@ server.commands = {
   'menu' : {
     'handler': server.feedz.menu,
     'alias'  : ['menu', 'M', 'help', 'm']
-  },
+  }
 };
 
 //--------------------------------------------------------------//
 
 // =EVENT HANDLERS=
 
-// adding handlers for the commands:
+// adding handlers for the above map of commands:
 for( cmd_type in server.commands ){
   for( cmd_alias in server.commands[cmd_type].alias){
     server.registerCommand( server.commands[cmd_type].alias[cmd_alias], server.commands[cmd_type].handler);
   }
 }
+// default case
 server.registerCommand('unknown', function(data){
   sys.puts("-unknown command-");
   return '';
@@ -305,7 +302,7 @@ server.http.get("/listen", function (req, res) {
 // open a web client connection - register session_id
 server.http.get("/open", function (req, res) {
   session = { 'id': Math.floor(Math.random()*99999999999).toString() };
-  if (session == null) {
+  if (session === null) {
     res.simpleJSON(400, {error: "Error initializing session"});
     return;
   }
@@ -323,6 +320,12 @@ server.http.get("/close", function (req, res) {
   res.simpleJSON(200, {});
 });
 
+function extend(a, b) {
+  Object.keys(b).forEach(function (key) {
+    a[key] = b[key];
+  });
+  return a;
+}
 
 // every 10 seconds poll for the memory.
 //setInterval(function () {
@@ -382,7 +385,7 @@ var Twit = function() {
     self.emit('error', new Error('parser error: ' + error.message));
     sys.puts("Error - " + error.message);
   });
-}
+};
 
 Twit.prototype = Object.create(EventEmitter.prototype);
 
@@ -435,16 +438,9 @@ server.feedz.processJSONObject = function(twit) {
   };
 };
 
-function extend(a, b) {
-  Object.keys(b).forEach(function (key) {
-    a[key] = b[key];
-  });
-  return a;
-}
-
 server.twit = new Twit();
 server.twit.addListener('tweet', function(tweet) {
-  tweet_out = "@" + tweet.user.screen_name + ": " + tweet.text;
+  tweet_out = "<span class='user'>@" + tweet.user.screen_name + "</span>: " + tweet.text;
   if( server.tweetstream.length > server.TWEET_BUFF_MAX )
   {
     server.tweetstream.shift();
