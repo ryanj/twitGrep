@@ -11,11 +11,7 @@ util = {
     return inputHtml.replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;");
-  }, 
-  isBlank: function(text) {
-    var blank = /^\s*$/;
-    return (text.match(blank) !== null);
-  }
+  } 
 };
 
 client.addTweet = function(data) {
@@ -66,8 +62,8 @@ client.longPoll = function (data) {
 
 //submit a new command to the server
 client.send = function(msg) {
-  jQuery.get("/command", {command: msg}, function (data) { console.log(data.result);$('#status').text( data.result.toString() ); }, "json");
-}
+  jQuery.get("/command", {command: msg}, function (data) { console.log(data.result); $('#status').text( data.result.toString() ); }, "json");
+};
 
 // =MODE TRANSITIONS=
 
@@ -75,19 +71,19 @@ client.send = function(msg) {
 showError = function() {
   $("#error").show();
   $("#toolbar").hide();
-}
+};
 
 //transition the page to the away screen
 showAway = function() {
   $("#away").show();
   $("#toolbar").hide();
-}
+};
 
 //transition the page to the loading screen
 showLoading = function() {
   $("#loading").show();
   $("#toolbar").hide();
-}
+};
 
 //show data stream
 showTweets = function() {
@@ -95,13 +91,13 @@ showTweets = function() {
   $("#entry").focus();
   $("#loading").hide();
   scrollDown();
-}
+};
 
 //keep the most recent tweets visible
 scrollDown = function () {
   window.scrollBy(0, 100000000000000000);
   $("#entry").focus();
-}
+};
 
 // =EVENT HANDLERS=
 
@@ -121,7 +117,7 @@ client.onConnect = function (session) {
     client.focus = true;
   });
   client.longPoll();
-}
+};
 
 client.openConnection = function(){
   $.ajax({ 
@@ -144,9 +140,10 @@ $(document).ready(function() {
   showLoading();
   //submit new messages when the user hits enter if the message isnt blank
   $("#command_line").keypress(function (e) {
-    if (e.keyCode != 13 /* Return */) return;
-    var msg = $("#command_line").attr("value").replace("\n", "");
-    if (!util.isBlank(msg)) client.send(msg);
+    if (e.keyCode !== 13) {return;}
+    client.send( 
+      $("#command_line").attr("value").replace("\n", "") 
+    );
     $("#command_line").attr("value", ""); // clear the entry field.
   });
 
@@ -160,6 +157,6 @@ $(document).ready(function() {
 
 //if we can, notify the server that we're going away.
 $(window).unload(function () {
-  jQuery.get("/close", {}, function (data) { }, "json");
+  jQuery.get("/close", { 'id': 'session_id' }, function(data){ }, "json");
   showLoading();
 });

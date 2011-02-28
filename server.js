@@ -25,7 +25,7 @@ var server = {
   'PORT' : 8001,
   'TCP_PORT' : 8002,
   'SESSION_TIMEOUT' : 60000,
-  'TWEET_BUFF_MAX': 333 
+  'TWEET_BUFF_MAX': 200 
 };
 
 
@@ -107,12 +107,12 @@ server.notFound = function(req, res) {
   res.writeHead(404, { "Content-Type": "text/plain", "Content-Length": NOT_FOUND.length });
   res.end(NOT_FOUND);
   sys.puts("404: " + req.url + "\n");
-}
+};
 
 server.extname = function(path) {
   var index = path.lastIndexOf(".");
   return index < 0 ? "" : path.substring(index);
-}
+};
 
 server.http.get = function (path, handler) {
   server.getMap[path] = handler;
@@ -136,7 +136,7 @@ server.http.staticHandler = function (filename) {
         headers = { "Content-Type": content_type
                   , "Content-Length": body.length
                   };
-        if (!DEBUG) headers["Cache-Control"] = "public";
+        if (!DEBUG) {headers["Cache-Control"] = "public";}
         sys.puts("static file " + filename + " loaded");
         callback();
       }
@@ -148,7 +148,7 @@ server.http.staticHandler = function (filename) {
       res.writeHead(200, headers);
       res.end(req.method === "HEAD" ? "" : body);
     });
-  }
+  };
 };
 
 //register a whitelist of commands that can be run
@@ -158,12 +158,12 @@ server.registerCommand = function (cmd, handler) {
 
 //parse and execute commands
 server.parseCommand = function(input){
-  output = '', cmd = 'unknown', args='';
-  str = new String(input).trim();
+  output = ''; cmd = 'unknown'; args='';
+  str = String(input).trim();
 
   //parse command
   b = str.indexOf(' ');
-  if( -1 == b ){
+  if( -1 === b ){
     cmd = str;
   } else {
     cmd = str.slice(0,b);
@@ -171,7 +171,7 @@ server.parseCommand = function(input){
   }
 
   //run
-  var command_exec = server.commandMap[ cmd ] || server.commandMap['unknown'];
+  var command_exec = server.commandMap[ cmd ] || server.commandMap.unknown;
   return command_exec( args );
 };
 
@@ -188,7 +188,7 @@ var feedz = {
   },
   'remove': function(id){
     //remove from list
-    for (var feed in server.feedz.feedList) {
+    for (feed in server.feedz.feedList) {
       if (server.feedz.feedList[feed] == id) server.feedz.feedList.splice( feed, 1 );
     }
     server.twit.stream();
@@ -266,8 +266,8 @@ server.commands = {
 
 // adding handlers for the commands:
 for( cmd_type in server.commands ){
-  for( cmd_alias in server.commands[cmd_type]['alias']){
-    server.registerCommand( server.commands[cmd_type]['alias'][cmd_alias], server.commands[cmd_type]['handler']);
+  for( cmd_alias in server.commands[cmd_type].alias){
+    server.registerCommand( server.commands[cmd_type].alias[cmd_alias], server.commands[cmd_type].handler);
   }
 }
 server.registerCommand('unknown', function(data){
@@ -400,8 +400,8 @@ Twit.prototype.stream = function() {
       twit    = this,
       request;
 
-  headers['Host'] = this.host;
-  headers['Authorization'] = "Basic c2FtcGxldHdpdHM6bWV0cm9wb2xpcw==";
+  headers.Host = this.host;
+  headers.Authorization = "Basic c2FtcGxldHdpdHM6bWV0cm9wb2xpcw==";
   uri = this.path + "filter.json" + params;
   request = client.request("GET", uri, headers);
 
