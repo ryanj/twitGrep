@@ -24,7 +24,8 @@ var server = {
   'HOST' : null,
   'PORT' : 8001,
   'TCP_PORT' : 8002,
-  'SESSION_TIMEOUT' : 60000
+  'SESSION_TIMEOUT' : 60000,
+  'TWEET_BUFF_MAX': 333 
 };
 
 
@@ -127,7 +128,6 @@ server.http.staticHandler = function (filename) {
       return;
     }
 
-    sys.puts("loading " + filename + "...");
     readFile(filename, function (err, data) {
       if (err) {
         sys.puts("Error loading " + filename);
@@ -160,7 +160,6 @@ server.registerCommand = function (cmd, handler) {
 server.parseCommand = function(input){
   output = '', cmd = 'unknown', args='';
   str = new String(input).trim();
-  sys.puts("command: " + str );
 
   //parse command
   b = str.indexOf(' ');
@@ -180,7 +179,7 @@ server.parseCommand = function(input){
 // =TWITTER FEEDS=
 
 var feedz = {
-  'feedList': ['RootMusic', 'SF', 'node.js'],
+  'feedList': ['RootMusic', 'SF', 'node.js', 'javascript', 'beiber'],
   'active': false,
   'list': function(){
     //return current list
@@ -280,7 +279,6 @@ server.registerCommand('unknown', function(data){
 server.http.get("/", server.http.staticHandler("index.html"));
 server.http.get("/style.css", server.http.staticHandler("style.css"));
 server.http.get("/client.js", server.http.staticHandler("client.js"));
-server.http.get("/jquery-1.2.6.min.js", server.http.staticHandler("jquery-1.2.6.min.js"));
 
 server.http.get("/add", function (req, res) {
   var id = qs.parse(url.parse(req.url).query).id;
@@ -300,7 +298,7 @@ server.http.get("/command", function (req, res) {
 
 server.http.get("/listen", function (req, res) {
   if(server.tweetstream.length > 0 ){
-    res.simpleJSON(200, { 'tweet': server.tweetstream.pop() });
+    res.simpleJSON(200, { 'tweet': server.tweetstream.shift() });
   }
 });
 
@@ -312,7 +310,6 @@ server.http.get("/open", function (req, res) {
     return;
   }
   server.feedz.resume();
-  sys.puts("connection: " + res.connection.remoteAddress);
   res.simpleJSON(200, { id: session.id });
 });
 
@@ -320,14 +317,9 @@ server.http.get("/open", function (req, res) {
 // disconnect web client - close this session
 //   if there is nobody listening, suspend streaming
 server.http.get("/close", function (req, res) { 
-  var id = qs.parse(url.parse(req.url).query).id;
+  //var id = qs.parse(url.parse(req.url).query).id;
   server.feedz.suspend();
   sys.puts("disconnect from: " + res.connection.remoteAddress);
-  var session;
-  //if (id && server.sessions[id]) {
-  //  session = server.sessions[id];
-  //  session.destroy();
-  //}
   res.simpleJSON(200, {});
 });
 
@@ -337,29 +329,14 @@ server.http.get("/close", function (req, res) {
 //  mem = process.memoryUsage();
 //}, 10*1000);
 
-
-
 // TODO:
 // -Init session on connect
-//    -( triggers stream resume )
-// -part triggers suspend command
-// -on
-// -off
-//
-
-
-
-
-
-
-
-
-
-
-
+//    - triggers stream resume
+// -part triggers suspend 
+// -on (makes sure that twitter has our latest feeds)
+// -off (not working currently)
 
 // Borrowed parts of this parser from https://github.com/technoweenie/twitter-node/blob/master/lib/twitter-node/parser.js
-
 var Parser = function() {
   // call parent constructor
   EventEmitter.call(this);
@@ -400,6 +377,10 @@ var Twit = function() {
   this.headers       = { "User-Agent": 'Node' };
   this.parser        = new Parser();
   this.parser.addListener('object', server.feedz.processJSONObject(this));
+  this.parser.addListener('error', function (error) {
+    self.emit('error', new Error('TwitterNode parser error: ' + error.message));
+    sys.puts("Error - " + error.message);
+  });
 }
 
 Twit.prototype = Object.create(EventEmitter.prototype);
@@ -419,7 +400,7 @@ Twit.prototype.stream = function() {
       request;
 
   headers['Host'] = this.host;
-  headers['Authorization'] = "Basic dHJhbnFlbnN0ZWluOkd1aTlpZGUx";
+  headers['Authorization'] = "Basic c2FtcGxldHdpdHM6bWV0cm9wb2xpcw==";
   uri = this.path + "filter.json" + params;
   request = client.request("GET", uri, headers);
 
@@ -465,7 +446,14 @@ server.twit = new Twit();
 server.twit.addListener('tweet', function(tweet) {
   tweet_out = "@" + tweet.user.screen_name + ": " + tweet.text;
   server.tweetstream.push(tweet_out);
-  sys.puts(tweet_out);
+  if( server.tweetstream.length > server.TWEET_BUFF_MAX )
+  {
+    server.tweetstream.shift();
+  }
+  if(server.feedz.active )
+  {
+    sys.puts(tweet_out);
+  }
 });
 server.twit.addListener('limit', function(limit) {
   sys.puts("LIMIT: " + sys.inspect(limit));

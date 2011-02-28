@@ -22,9 +22,6 @@ client.addTweet = function(data) {
   var divElement = $(document.createElement("div"));
   divElement.addClass("tweet");
 
-  console.log("ADDING TWEET: ");
-  console.log(data);
-
   // sanitize
   text = util.toStaticHTML(data);
   // replace URLs with links
@@ -36,9 +33,8 @@ client.addTweet = function(data) {
 };
 
 client.longPoll = function (data) {
-  if (client.tx_errors > 2) {
+  if (client.tx_errors >= 10) {
     showError();
-    client.tx_errors = 0;
     return;
   }
 
@@ -59,7 +55,7 @@ client.longPoll = function (data) {
     error: function () {
       client.tx_errors += 1;
       //wait 5 seconds before retrying
-      setTimeout(client.longPoll, 10*1000);
+      setTimeout(client.longPoll, 5 * 1000);
     }, 
     success: function (data) {
       client.tx_errors = 0;
