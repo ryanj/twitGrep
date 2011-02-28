@@ -370,7 +370,8 @@ Parser.prototype.receive = function receive(buffer) {
 // Creates a streaming connection with twitter, and pushes any incoming statuses to a tweet event.
 var Twit = function() {
   EventEmitter.call(this);
-  this.options = {};
+  var self           = this;
+  this.options       = {};
   this.host          = 'stream.twitter.com';
   this.port          = 80;
   this.path          = '/1/statuses/';
@@ -378,7 +379,7 @@ var Twit = function() {
   this.parser        = new Parser();
   this.parser.addListener('object', server.feedz.processJSONObject(this));
   this.parser.addListener('error', function (error) {
-    self.emit('error', new Error('TwitterNode parser error: ' + error.message));
+    self.emit('error', new Error('parser error: ' + error.message));
     sys.puts("Error - " + error.message);
   });
 }
