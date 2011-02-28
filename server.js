@@ -426,7 +426,6 @@ Twit.prototype.stream = function() {
 //twitter data callback
 server.feedz.processJSONObject = function(twit) {
   return function(tweet) {
-    sys.puts(tweet);
     if (tweet.limit) {
       twit.emit('limit', tweet.limit);
     } else {
@@ -445,13 +444,13 @@ function extend(a, b) {
 server.twit = new Twit();
 server.twit.addListener('tweet', function(tweet) {
   tweet_out = "@" + tweet.user.screen_name + ": " + tweet.text;
-  server.tweetstream.push(tweet_out);
   if( server.tweetstream.length > server.TWEET_BUFF_MAX )
   {
     server.tweetstream.shift();
   }
   if(server.feedz.active )
   {
+    server.tweetstream.push(tweet_out);
     sys.puts(tweet_out);
   }
 });
