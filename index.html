@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+  <link rel="stylesheet" href="style.css" type="text/css"/>
+  <script src="jquery-1.2.6.min.js" type="text/javascript"></script>
+  <script src="client.js" type="text/javascript"></script>
+  <title>[TwitGrep]</title>
+</head>
+<body>
+  <div id="app">
+    <header><div id='header'> =[TwitGrep]= </div></header>
+    <div id="loading"><p>loading...</p></div>
+    <div id="error"><p>ERROR - <a href='/'>try again?</a></p></div>
+    <div id="away"><p><b>AFK</b> - the stream has been suspended - <a id='resume' href='#'>resume</a></p></div>
+    <div id="stream">
+      <div class="tweet">javascript is required in order to run this app</div>
+    </div>
+    <div id="toolbar">
+      <input tabindex="1" type="text" id="command_line"/>
+      <div id='status'> type M for (m)enu </div>
+    </div>
+  </div>
+</body>
+</html>
