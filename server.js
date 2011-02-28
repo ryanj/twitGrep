@@ -339,7 +339,9 @@ function extend(a, b) {
 // -on (makes sure that twitter has our latest feeds)
 // -off (not working currently)
 
-// Borrowed parts of this parser from https://github.com/technoweenie/twitter-node/blob/master/lib/twitter-node/parser.js
+// Borrowed parts of this parser from 
+// https://github.com/technoweenie/twitter-node/blob/master/lib/twitter-node/parser.js
+// It seems to crash a lot :(
 var Parser = function() {
   // call parent constructor
   EventEmitter.call(this);
@@ -440,7 +442,7 @@ server.feedz.processJSONObject = function(twit) {
 
 server.twit = new Twit();
 server.twit.addListener('tweet', function(tweet) {
-  tweet_out = "<span class='user'>@" + tweet.user.screen_name + "</span>: " + tweet.text;
+  tweet_out = "@" + tweet.user.screen_name + ": " + tweet.text;
   if( server.tweetstream.length > server.TWEET_BUFF_MAX )
   {
     server.tweetstream.shift();

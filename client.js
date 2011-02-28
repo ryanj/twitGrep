@@ -141,9 +141,7 @@ $(document).ready(function() {
   //submit new messages when the user hits enter if the message isnt blank
   $("#command_line").keypress(function (e) {
     if (e.keyCode !== 13) {return;}
-    client.send( 
-      $("#command_line").attr("value").replace("\n", "") 
-    );
+    client.send( $("#command_line").attr("value").replace("\n", "") );
     $("#command_line").attr("value", ""); // clear the entry field.
   });
 
